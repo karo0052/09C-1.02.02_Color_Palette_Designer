@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Color Palette Designer</title>
+    <style>
+      .wrapper {
+        display: flex;
+        flex-direction: row;
+      }
+      .color_field {
+        width: 200px;
+        height: 200px;
+        border: 1px solid rgb(170, 166, 166);
+      }
+      .base_color {
+        border: 2px solid black;
+        width: 200px;
+        height: 200px;
+      }
+      .base_hex {
+        font-weight: 700;
+      }
+      .hidden {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="color_picker" type="color" value="#ff0000" />
+    <label class="hidden" for="harmony_select">Choose a harmony:</label>
+    <select class="hidden" id="harmony_select">
+      <option value="">--Please choose an option--</option>
+      <option value="analogous">Analogous</option>
+      <option value="monochromatic">Monochromatic</option>
+      <option value="triad">Triad</option>
+      <option value="complementary">Complementary</option>
+      <option value="compound">Compound</option>
+      <option value="shades">Shades</option>
+    </select>
+    <div class="wrapper">
+      <div class="single_wrapper">
+        <div class="color_field color_field2"></div>
+        <p class="hex_field hex_field2"></p>
+      </div>
+      <div class="single_wrapper">
+        <div class="color_field color_field1"></div>
+        <p class="hex_field hex_field1"></p>
+      </div>
+      <div class="single_wrapper">
+        <div class="base_color"></div>
+        <p class="base_hex"></p>
+      </div>
+      <div class="single_wrapper">
+        <div class="color_field color_field3"></div>
+        <p class="hex_field hex_field3"></p>
+      </div>
+      <div class="single_wrapper">
+        <div class="color_field color_field4"></div>
+        <p class="hex_field hex_field4"></p>
+      </div>
+    </div>
+    <script>
+      "use strict";
+      window.addEventListener("DOMContentLoaded", init);
+      let chosenColor;
+      let chosenHarmony;
+      let baseColor;
+
+      function init() {
+        console.log("init");
+        document
+          .querySelector("#color_picker")
+          .addEventListener("input", colorPick, false);
+      }
+      //colorPick (event)
+      //brugeren klikker på en HEX farve
+      function colorPick(event) {
+        console.log("colorPick");
+        chosenColor = event.target.value;
+        console.log(chosenColor);
+        document.querySelector("label").classList.remove("hidden");
+        document.querySelector("select").classList.remove("hidden");
+        setBaseColor();
+      }
+      //setBaseColor
+      //skal returnere farven (basen) som HSL
+      function setBaseColor() {
+        console.log("setBaseColor");
+        baseColor = convertHEXtoHSL(chosenColor);
+        console.log(baseColor);
+        document.querySelector(".base_color").style.backgroundColor = baseColor;
+        document.querySelector(".base_hex").textContent = chosenColor;
+        document
+          .querySelector("#harmony_select")
+          .addEventListener("change", harmonyPicker, false);
+      }
+
+      function harmonyPicker(event) {
+        console.log("harmonyPicker");
+        chosenHarmony = event.target.value;
+        console.log(chosenHarmony);
+        calculateColors();
+      }
+
+      function calculateColors() {
+        console.log("calculateColors");
+        document.querySelector(".color_field2").classList.remove("hidden");
+        document.querySelector(".hex_field2").classList.remove("hidden");
+        document.querySelector(".color_field4").classList.remove("hidden");
+        document.querySelector(".hex_field4").classList.remove("hidden");
+        document.querySelectorAll(".hex_field").forEach(felt => {
+          felt.style.color = "black";
+        });
+
+        let h1,
+          h2,
+          h3,
+          h4,
+          l1,
+          l2,
+          l3,
+          l4,
+          c1,
+          c2,
+          c3,
+          c4,
+          g1,
+          g2,
+          g3,
+          g4,
+          hexT1,
+          hexT2,
+          hexT3,
+          hexT4,
+          hex1,
+          hex2,
+          hex3,
+          hex4;
+
+        if (chosenHarmony == "analogous" || chosenHarmony == "triad") {
+          let findH = baseColor.indexOf(",");
+          let hbase = baseColor.substring(4, findH);
+          let sl = baseColor.substring(findH);
+          let hbaseNumber = parseFloat(hbase);
+
+          if (chosenHarmony == "analogous") {
+            h1 = calcSmallerHValues(hbaseNumber);
+            c1 = makeAnaloguesFromH(h1, sl);
+
+            h2 = calcSmallerHValues(h1);
+            c2 = makeAnaloguesFromH(h2, sl);
+
+            h3 = calcLargerHValues(hbaseNumber);
+            c3 = makeAnaloguesFromH(h3, sl);
+
+            h4 = calcLargerHValues(h3, sl);
+            c4 = makeAnaloguesFromH(h4, sl);
+          }
+          if (chosenHarmony == "triad") {
+            h1 = calcSmallTriad(hbaseNumber);
+            c1 = makeAnaloguesFromH(h1, sl);
+
+            h3 = calcLargeTriad(hbaseNumber);
+            c3 = makeAnaloguesFromH(h3, sl);
+            document.querySelector(".color_field2").classList.add("hidden");
+            document.querySelector(".hex_field2").classList.add("hidden");
+            document.querySelector(".color_field4").classList.add("hidden");
+            document.querySelector(".hex_field4").classList.add("hidden");
+          }
+        }
+        if (chosenHarmony == "monochromatic") {
+          let findL = baseColor.lastIndexOf(",");
+          let lbase = baseColor.substring(findL + 1, baseColor.length - 2);
+          let hs = baseColor.substring(0, findL + 1);
+          let lbaseNumber = parseFloat(lbase);
+
+          l1 = calcSmallerLValues(lbaseNumber);
+          c1 = makeAnaloguesFromL(l1, hs);
+
+          l2 = calcSmallerLValues(l1);
+          c2 = makeAnaloguesFromL(l2, hs);
+
+          l3 = calcLargerLValues(lbaseNumber);
+          c3 = makeAnaloguesFromL(l3, hs);
+
+          l4 = calcLargerLValues(l3, hs);
+          c4 = makeAnaloguesFromL(l4, hs);
+        }
+
+        if (chosenHarmony == "complementary") {
+        }
+        if (chosenHarmony == "compound") {
+        }
+        if (chosenHarmony == "shades") {
+        }
+        if (chosenHarmony == "") {
+          document.querySelectorAll(".color_field").forEach(felt => {
+            felt.style.backgroundColor = "white";
+          });
+
+          document.querySelectorAll(".hex_field").forEach(felt => {
+            felt.style.color = "white";
+          });
+        }
+        document.querySelector(".color_field1").style.backgroundColor = c1;
+        g1 = document.querySelector(".color_field1").style.backgroundColor;
+        console.log("det her er g1:" + g1);
+        hexT1 = sliceRGB(g1);
+        hex1 = convertRGBtoHEX(
+          parseFloat(hexT1.r),
+          parseFloat(hexT1.g),
+          parseFloat(hexT1.b)
+        );
+        console.log(hex1);
+        document.querySelector(".hex_field1").textContent = hex1;
+
+        document.querySelector(".color_field2").style.backgroundColor = c2;
+        g2 = document.querySelector(".color_field2").style.backgroundColor;
+        hexT2 = sliceRGB(g2);
+        hex2 = convertRGBtoHEX(
+          parseFloat(hexT2.r),
+          parseFloat(hexT2.g),
+          parseFloat(hexT2.b)
+        );
+        document.querySelector(".hex_field2").textContent = hex2;
+        document.querySelector(".color_field3").style.backgroundColor = c3;
+        g3 = document.querySelector(".color_field3").style.backgroundColor;
+        hexT3 = sliceRGB(g3);
+        hex3 = convertRGBtoHEX(
+          parseFloat(hexT3.r),
+          parseFloat(hexT3.g),
+          parseFloat(hexT3.b)
+        );
+        document.querySelector(".hex_field3").textContent = hex3;
+        document.querySelector(".color_field4").style.backgroundColor = c4;
+        g4 = document.querySelector(".color_field4").style.backgroundColor;
+        hexT4 = sliceRGB(g4);
+        hex4 = convertRGBtoHEX(
+          parseFloat(hexT4.r),
+          parseFloat(hexT4.g),
+          parseFloat(hexT4.b)
+        );
+        document.querySelector(".hex_field4").textContent = hex4;
+        document
+          .querySelector("#color_picker")
+          .addEventListener("input", calculateColors, false);
+      }
+
+      function calcSmallerHValues(h) {
+        console.log("calcSmallerHValues");
+        let nr1 = h - 22.5;
+        if (nr1 < 0) {
+          nr1 = nr1 + 360;
+        }
+        return nr1;
+      }
+      function calcSmallerLValues(l) {
+        console.log("calcSmallerLValues");
+        let nr1 = l - 25;
+        if (nr1 < 0) {
+          nr1 = 0;
+        }
+        return nr1;
+      }
+
+      function calcSmallTriad(h) {
+        console.log("calcSmallTriad");
+        let nr1 = h - 120;
+        if (nr1 < 0) {
+          nr1 = nr1 + 360;
+        }
+        return nr1;
+      }
+
+      function calcLargerHValues(h) {
+        console.log("calcLargerHValues");
+        let nr1 = h + 22.5;
+        if (nr1 > 360) {
+          nr1 = nr1 - 360;
+        }
+        return nr1;
+      }
+
+      function calcLargerLValues(l) {
+        console.log("calcLargerLValues");
+        let nr1 = l + 25;
+        if (nr1 > 100) {
+          nr1 = 100;
+        }
+        return nr1;
+      }
+
+      function calcLargeTriad(h) {
+        console.log("calcLargeTriad");
+        let nr1 = h + 120;
+        if (nr1 > 360) {
+          nr1 = nr1 - 360;
+        }
+        return nr1;
+      }
+
+      function makeAnaloguesFromH(h_code, sl) {
+        console.log("makeAnaloguesFromH");
+        let color = `hsl(${h_code}${sl}`;
+        return color;
+      }
+      function makeAnaloguesFromL(l_code, hs) {
+        console.log("makeAnaloguesFromL");
+        let color = `${hs}${l_code}%)`;
+        return color;
+      }
+
+      function sliceRGB(rgb_code) {
+        console.log("sliceRGB");
+        let r, g, b;
+        let firstComma = rgb_code.indexOf(",");
+        let lastComma = rgb_code.lastIndexOf(",");
+        r = rgb_code.substring(4, firstComma);
+        g = rgb_code.substring(firstComma + 2, lastComma);
+        b = rgb_code.substring(lastComma + 2, rgb_code.length - 1);
+
+        return { r, g, b };
+      }
+
+      //convertHEXtoHSL
+      function convertHEXtoHSL(hex_code) {
+        //first to rgb
+        let r = 0,
+          g = 0,
+          b = 0;
+
+        let noHash = hex_code.substring(1);
+        let r1 = noHash.slice(0, 2);
+        let g1 = noHash.slice(2, 4);
+        let b1 = noHash.slice(4, 6);
+
+        r = Number.parseInt(r1, [16]);
+        g = Number.parseInt(g1, [16]);
+        b = Number.parseInt(b1, [16]);
+
+        r /= 255;
+        g /= 255;
+        b /= 255;
+
+        //then hsl
+        let h, s, l;
+
+        const min = Math.min(r, g, b);
+        const max = Math.max(r, g, b);
+
+        if (max === min) {
+          h = 0;
+        } else if (max === r) {
+          h = 60 * (0 + (g - b) / (max - min));
+        } else if (max === g) {
+          h = 60 * (2 + (b - r) / (max - min));
+        } else if (max === b) {
+          h = 60 * (4 + (r - g) / (max - min));
+        }
+        if (h < 0) {
+          h = h + 360;
+        }
+
+        l = (min + max) / 2;
+
+        if (max === 0 || min === 1) {
+          s = 0;
+        } else {
+          s = (max - l) / Math.min(l, 1 - l);
+        }
+        // multiply s and l by 100 to get the value in percent, rather than [0,1]
+        s *= 100;
+        l *= 100;
+
+        return "hsl(" + h + "," + s + "%," + l + "%)";
+        // return { h, s, l };
+      }
+
+      function convertRGBtoHEX(r, g, b) {
+        console.log("convertRGBtoHEX");
+        r = r.toString(16);
+        g = g.toString(16);
+        b = b.toString(16);
+
+        if (r.length == 1) r = "0" + r;
+        if (g.length == 1) g = "0" + g;
+        if (b.length == 1) b = "0" + b;
+
+        return "#" + r + g + b;
+      }
+
+      //convertHEXtoHSL
+      function hexToHSLfranattet(H) {
+        // Convert hex to RGB first
+        let r = 0,
+          g = 0,
+          b = 0;
+        if (H.length == 4) {
+          r = "0x" + H[1] + H[1];
+          g = "0x" + H[2] + H[2];
+          b = "0x" + H[3] + H[3];
+        } else if (H.length == 7) {
+          r = "0x" + H[1] + H[2];
+          g = "0x" + H[3] + H[4];
+          b = "0x" + H[5] + H[6];
+        }
+
+        // Then to HSL
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        let cmin = Math.min(r, g, b),
+          cmax = Math.max(r, g, b),
+          delta = cmax - cmin,
+          h = 0,
+          s = 0,
+          l = 0;
+
+        if (delta == 0) {
+          h = 0;
+        } else if (cmax == r) {
+          h = ((g - b) / delta) % 6;
+        } else if (cmax == g) {
+          h = (b - r) / delta + 2;
+        } else {
+          h = (r - g) / delta + 4;
+        }
+
+        h = Math.round(h * 60);
+
+        if (h < 0) {
+          h += 360;
+        }
+
+        l = (cmax + cmin) / 2;
+        s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+        s = +(s * 100).toFixed(1);
+        l = +(l * 100).toFixed(1);
+
+        return "hsl(" + h + "," + s + "%," + l + "%)";
+      }
+
+      //calculateColors (base)
+
+      // let chosenHarmony = event.target.value;
+      // console.log(chosenHarmony);
+
+      //Analogues OR monochromatic OR triad ...
+
+      //setColor(id, color) kaldes 5 gange - 1 gang for hver farve
+
+      //convertRGBstringToRGB
+
+      //convertRGBtoHEX
+    </script>
+  </body>
+</html>
