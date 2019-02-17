@@ -179,10 +179,10 @@
             c2 = makeColor(hbase, sbase, l4);
           }
           if (chosenHarmony == "triad") {
-            h1 = calcSmallTriad(parseFloat(hbase));
+            h1 = calcTriad(parseFloat(hbase));
             c1 = makeColor(h1, sbase, lbase);
 
-            h3 = calcLargeTriad(parseFloat(hbase));
+            h3 = calcTriad(parseFloat(h1));
             c3 = makeColor(h3, sbase, lbase);
             document.querySelector(".color_field2").classList.add("hidden");
             document.querySelector(".hex_field2").classList.add("hidden");
@@ -301,16 +301,11 @@
         return nr1;
       }
 
-      function calcSmallTriad(h) {
+      function calcTriad(h) {
         let nr1 = h - 120;
         if (nr1 < 0) {
           nr1 = nr1 + 360;
         }
-        return nr1;
-      }
-
-      function calcLargeTriad(h) {
-        let nr1 = h + 120;
         if (nr1 > 360) {
           nr1 = nr1 - 360;
         }
