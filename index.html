@@ -26,8 +26,17 @@
       .hidden {
         visibility: hidden;
       }
+      #color_picker {
+        margin: 0 20px 20px 0;
+        cursor: pointer;
+      }
+      select,
+      option {
+        cursor: pointer;
+      }
     </style>
   </head>
+
   <body>
     <input id="color_picker" type="color" value="#ff0000" />
     <label class="hidden" for="harmony_select">Choose a harmony:</label>
@@ -68,9 +77,10 @@
       let chosenColor;
       let chosenHarmony;
       let baseColor;
+      let c1, c2, c3, c4;
 
       function init() {
-        console.log("init");
+        // console.log("init");
         document
           .querySelector("#color_picker")
           .addEventListener("input", colorPick, false);
@@ -78,124 +88,148 @@
       //colorPick (event)
       //brugeren klikker på en HEX farve
       function colorPick(event) {
-        console.log("colorPick");
+        // console.log("colorPick");
         chosenColor = event.target.value;
-        console.log(chosenColor);
+        //viser selecteren for farveharmonier
         document.querySelector("label").classList.remove("hidden");
         document.querySelector("select").classList.remove("hidden");
         setBaseColor();
       }
-      //setBaseColor
-      //skal returnere farven (basen) som HSL
+      //setBaseColor som HSL
       function setBaseColor() {
-        console.log("setBaseColor");
+        // console.log("setBaseColor");
         baseColor = convertHEXtoHSL(chosenColor);
-        console.log(baseColor);
+        //farver feltet
         document.querySelector(".base_color").style.backgroundColor = baseColor;
+        //indsætter hexkoden for basen
         document.querySelector(".base_hex").textContent = chosenColor;
         document
           .querySelector("#harmony_select")
           .addEventListener("change", harmonyPicker, false);
       }
-
+      //gemmer den valgte harmoni i en variabel
       function harmonyPicker(event) {
-        console.log("harmonyPicker");
+        // console.log("harmonyPicker");
         chosenHarmony = event.target.value;
-        console.log(chosenHarmony);
         calculateColors();
       }
 
       function calculateColors() {
-        console.log("calculateColors");
+        // console.log("calculateColors");
+        //sørger for alle felter bliver vist
         document.querySelector(".color_field2").classList.remove("hidden");
         document.querySelector(".hex_field2").classList.remove("hidden");
+        document.querySelector(".color_field3").classList.remove("hidden");
+        document.querySelector(".hex_field3").classList.remove("hidden");
         document.querySelector(".color_field4").classList.remove("hidden");
         document.querySelector(".hex_field4").classList.remove("hidden");
+        //sørger for alle hexkoder kan ses
         document.querySelectorAll(".hex_field").forEach(felt => {
           felt.style.color = "black";
         });
 
-        let h1,
-          h2,
-          h3,
-          h4,
-          l1,
-          l2,
-          l3,
-          l4,
-          c1,
-          c2,
-          c3,
-          c4,
-          g1,
-          g2,
-          g3,
-          g4,
-          hexT1,
-          hexT2,
-          hexT3,
-          hexT4,
-          hex1,
-          hex2,
-          hex3,
-          hex4;
+        let h1, h2, h3, h4, l1, l2, l3, l4, s1, s2, s3, s4;
 
-        if (chosenHarmony == "analogous" || chosenHarmony == "triad") {
-          let findH = baseColor.indexOf(",");
-          let hbase = baseColor.substring(4, findH);
-          let sl = baseColor.substring(findH);
-          let hbaseNumber = parseFloat(hbase);
+        if (
+          chosenHarmony == "analogous" ||
+          chosenHarmony == "monochromatic" ||
+          chosenHarmony == "triad" ||
+          chosenHarmony == "complementary" ||
+          chosenHarmony == "compound" ||
+          chosenHarmony == "shades"
+        ) {
+          let findFirstComma = baseColor.indexOf(",");
+          let findLastComma = baseColor.lastIndexOf(",");
+
+          let hbase = baseColor.substring(4, findFirstComma);
+          let sbase = baseColor.substring(
+            findFirstComma + 1,
+            findLastComma - 1
+          );
+          let lbase = baseColor.substring(
+            findLastComma + 1,
+            baseColor.length - 2
+          );
 
           if (chosenHarmony == "analogous") {
-            h1 = calcSmallerHValues(hbaseNumber);
-            c1 = makeAnaloguesFromH(h1, sl);
-
+            h1 = calcSmallerHValues(parseFloat(hbase));
+            c1 = makeColor(h1, sbase, lbase);
+            console.log(c1);
             h2 = calcSmallerHValues(h1);
-            c2 = makeAnaloguesFromH(h2, sl);
+            c2 = makeColor(h2, sbase, lbase);
+            console.log(c2);
+            h3 = calcLargerHValues(parseFloat(hbase));
+            c3 = makeColor(h3, sbase, lbase);
+            console.log(c3);
+            h4 = calcLargerHValues(h3);
+            c4 = makeColor(h4, sbase, lbase);
+            console.log(c4);
+          }
+          if (chosenHarmony == "monochromatic") {
+            l1 = calcSmallerLValues(parseFloat(lbase));
+            c3 = makeColor(hbase, sbase, l1);
 
-            h3 = calcLargerHValues(hbaseNumber);
-            c3 = makeAnaloguesFromH(h3, sl);
+            l2 = calcSmallerLValues(l1);
+            c4 = makeColor(hbase, sbase, l2);
 
-            h4 = calcLargerHValues(h3, sl);
-            c4 = makeAnaloguesFromH(h4, sl);
+            l3 = calcLargerLValues(parseFloat(lbase));
+            c1 = makeColor(hbase, sbase, l3);
+
+            l4 = calcLargerLValues(l3);
+            c2 = makeColor(hbase, sbase, l4);
           }
           if (chosenHarmony == "triad") {
-            h1 = calcSmallTriad(hbaseNumber);
-            c1 = makeAnaloguesFromH(h1, sl);
+            h1 = calcSmallTriad(parseFloat(hbase));
+            c1 = makeColor(h1, sbase, lbase);
 
-            h3 = calcLargeTriad(hbaseNumber);
-            c3 = makeAnaloguesFromH(h3, sl);
+            h3 = calcLargeTriad(parseFloat(hbase));
+            c3 = makeColor(h3, sbase, lbase);
             document.querySelector(".color_field2").classList.add("hidden");
             document.querySelector(".hex_field2").classList.add("hidden");
             document.querySelector(".color_field4").classList.add("hidden");
             document.querySelector(".hex_field4").classList.add("hidden");
           }
-        }
-        if (chosenHarmony == "monochromatic") {
-          let findL = baseColor.lastIndexOf(",");
-          let lbase = baseColor.substring(findL + 1, baseColor.length - 2);
-          let hs = baseColor.substring(0, findL + 1);
-          let lbaseNumber = parseFloat(lbase);
+          if (chosenHarmony == "complementary") {
+            h1 = calcComplementary(parseFloat(hbase));
+            c1 = makeColor(h1, sbase, lbase);
+            document.querySelector(".color_field2").classList.add("hidden");
+            document.querySelector(".hex_field2").classList.add("hidden");
+            document.querySelector(".color_field3").classList.add("hidden");
+            document.querySelector(".hex_field3").classList.add("hidden");
+            document.querySelector(".color_field4").classList.add("hidden");
+            document.querySelector(".hex_field4").classList.add("hidden");
+          }
 
-          l1 = calcSmallerLValues(lbaseNumber);
-          c1 = makeAnaloguesFromL(l1, hs);
+          if (chosenHarmony == "compound") {
+            h1 = calcComplementary(parseFloat(hbase));
+            c1 = makeColor(h1, sbase, lbase);
 
-          l2 = calcSmallerLValues(l1);
-          c2 = makeAnaloguesFromL(l2, hs);
+            h2 = calcSmallerHValues(h1);
+            c2 = makeColor(h2, sbase, lbase);
 
-          l3 = calcLargerLValues(lbaseNumber);
-          c3 = makeAnaloguesFromL(l3, hs);
+            h3 = calcLargerHValues(parseFloat(hbase));
+            c3 = makeColor(h3, sbase, lbase);
 
-          l4 = calcLargerLValues(l3, hs);
-          c4 = makeAnaloguesFromL(l4, hs);
-        }
+            h4 = calcLargerHValues(h3);
+            c4 = makeColor(h4, sbase, lbase);
+          }
+          if (chosenHarmony == "shades") {
+            s1 = calcSmallerLValues(parseFloat(sbase));
+            c3 = makeColor(hbase, s1, lbase);
 
-        if (chosenHarmony == "complementary") {
+            s2 = calcSmallerLValues(s1);
+            c4 = makeColor(hbase, s2, lbase);
+
+            s3 = calcLargerLValues(parseFloat(sbase));
+            c1 = makeColor(hbase, s3, lbase);
+
+            s4 = calcLargerLValues(s3);
+            c2 = makeColor(hbase, s4, lbase);
+          }
         }
-        if (chosenHarmony == "compound") {
-        }
-        if (chosenHarmony == "shades") {
-        }
+        colorFields();
+        insertHEX();
+        //hvis der vælges "ingen farveharmoni" efter tidligere at have haft valgt en, viskes tavlen ren
         if (chosenHarmony == "") {
           document.querySelectorAll(".color_field").forEach(felt => {
             felt.style.backgroundColor = "white";
@@ -205,70 +239,38 @@
             felt.style.color = "white";
           });
         }
-        document.querySelector(".color_field1").style.backgroundColor = c1;
-        g1 = document.querySelector(".color_field1").style.backgroundColor;
-        console.log("det her er g1:" + g1);
-        hexT1 = sliceRGB(g1);
-        hex1 = convertRGBtoHEX(
-          parseFloat(hexT1.r),
-          parseFloat(hexT1.g),
-          parseFloat(hexT1.b)
-        );
-        console.log(hex1);
-        document.querySelector(".hex_field1").textContent = hex1;
-
-        document.querySelector(".color_field2").style.backgroundColor = c2;
-        g2 = document.querySelector(".color_field2").style.backgroundColor;
-        hexT2 = sliceRGB(g2);
-        hex2 = convertRGBtoHEX(
-          parseFloat(hexT2.r),
-          parseFloat(hexT2.g),
-          parseFloat(hexT2.b)
-        );
-        document.querySelector(".hex_field2").textContent = hex2;
-        document.querySelector(".color_field3").style.backgroundColor = c3;
-        g3 = document.querySelector(".color_field3").style.backgroundColor;
-        hexT3 = sliceRGB(g3);
-        hex3 = convertRGBtoHEX(
-          parseFloat(hexT3.r),
-          parseFloat(hexT3.g),
-          parseFloat(hexT3.b)
-        );
-        document.querySelector(".hex_field3").textContent = hex3;
-        document.querySelector(".color_field4").style.backgroundColor = c4;
-        g4 = document.querySelector(".color_field4").style.backgroundColor;
-        hexT4 = sliceRGB(g4);
-        hex4 = convertRGBtoHEX(
-          parseFloat(hexT4.r),
-          parseFloat(hexT4.g),
-          parseFloat(hexT4.b)
-        );
-        document.querySelector(".hex_field4").textContent = hex4;
+        //lytter på om der bliver valgt en ny farve for med det samme at opdatere uden igen at skulle vælge harmoni
         document
           .querySelector("#color_picker")
           .addEventListener("input", calculateColors, false);
       }
+      //indsætter farverne i felterne
+      function colorFields() {
+        console.log("colorFields");
+        colorField(".color_field1", c1);
+        colorField(".color_field2", c2);
+        colorField(".color_field3", c3);
+        colorField(".color_field4", c4);
+      }
+      //indsætter de tilhørende hex koder
+      function insertHEX() {
+        console.log("insertHEX");
+        document.querySelector(".hex_field1").textContent = calcHex(
+          ".color_field1"
+        );
+        document.querySelector(".hex_field2").textContent = calcHex(
+          ".color_field2"
+        );
+        document.querySelector(".hex_field3").textContent = calcHex(
+          ".color_field3"
+        );
+        document.querySelector(".hex_field4").textContent = calcHex(
+          ".color_field4"
+        );
+      }
 
       function calcSmallerHValues(h) {
-        console.log("calcSmallerHValues");
         let nr1 = h - 22.5;
-        if (nr1 < 0) {
-          nr1 = nr1 + 360;
-        }
-        return nr1;
-      }
-      function calcSmallerLValues(l) {
-        console.log("calcSmallerLValues");
-        let nr1 = l - 25;
-        if (nr1 < 0) {
-          nr1 = 0;
-        }
-        return nr1;
-      }
-
-      function calcSmallTriad(h) {
-        console.log("calcSmallTriad");
-        let nr1 = h - 120;
         if (nr1 < 0) {
           nr1 = nr1 + 360;
         }
@@ -276,7 +278,6 @@
       }
 
       function calcLargerHValues(h) {
-        console.log("calcLargerHValues");
         let nr1 = h + 22.5;
         if (nr1 > 360) {
           nr1 = nr1 - 360;
@@ -284,8 +285,15 @@
         return nr1;
       }
 
+      function calcSmallerLValues(l) {
+        let nr1 = l - 25;
+        if (nr1 < 0) {
+          nr1 = 0;
+        }
+        return nr1;
+      }
+
       function calcLargerLValues(l) {
-        console.log("calcLargerLValues");
         let nr1 = l + 25;
         if (nr1 > 100) {
           nr1 = 100;
@@ -293,8 +301,15 @@
         return nr1;
       }
 
+      function calcSmallTriad(h) {
+        let nr1 = h - 120;
+        if (nr1 < 0) {
+          nr1 = nr1 + 360;
+        }
+        return nr1;
+      }
+
       function calcLargeTriad(h) {
-        console.log("calcLargeTriad");
         let nr1 = h + 120;
         if (nr1 > 360) {
           nr1 = nr1 - 360;
@@ -302,19 +317,19 @@
         return nr1;
       }
 
-      function makeAnaloguesFromH(h_code, sl) {
-        console.log("makeAnaloguesFromH");
-        let color = `hsl(${h_code}${sl}`;
-        return color;
+      function calcComplementary(h) {
+        let nr1 = h + 180;
+        if (nr1 > 360) {
+          nr1 = nr1 - 360;
+        }
+        return nr1;
       }
-      function makeAnaloguesFromL(l_code, hs) {
-        console.log("makeAnaloguesFromL");
-        let color = `${hs}${l_code}%)`;
+      function makeColor(h, s, l) {
+        let color = `hsl(${h},${s}%,${l}%`;
         return color;
       }
 
       function sliceRGB(rgb_code) {
-        console.log("sliceRGB");
         let r, g, b;
         let firstComma = rgb_code.indexOf(",");
         let lastComma = rgb_code.lastIndexOf(",");
@@ -323,6 +338,21 @@
         b = rgb_code.substring(lastComma + 2, rgb_code.length - 1);
 
         return { r, g, b };
+      }
+
+      function colorField(field, color) {
+        document.querySelector(field).style.backgroundColor = color;
+      }
+
+      function calcHex(field) {
+        let rgbColor = document.querySelector(field).style.backgroundColor;
+        let hexTemp = sliceRGB(rgbColor);
+        let hex = convertRGBtoHEX(
+          parseFloat(hexTemp.r),
+          parseFloat(hexTemp.g),
+          parseFloat(hexTemp.b)
+        );
+        return hex;
       }
 
       //convertHEXtoHSL
@@ -380,7 +410,6 @@
       }
 
       function convertRGBtoHEX(r, g, b) {
-        console.log("convertRGBtoHEX");
         r = r.toString(16);
         g = g.toString(16);
         b = b.toString(16);
@@ -391,70 +420,6 @@
 
         return "#" + r + g + b;
       }
-
-      //convertHEXtoHSL
-      function hexToHSLfranattet(H) {
-        // Convert hex to RGB first
-        let r = 0,
-          g = 0,
-          b = 0;
-        if (H.length == 4) {
-          r = "0x" + H[1] + H[1];
-          g = "0x" + H[2] + H[2];
-          b = "0x" + H[3] + H[3];
-        } else if (H.length == 7) {
-          r = "0x" + H[1] + H[2];
-          g = "0x" + H[3] + H[4];
-          b = "0x" + H[5] + H[6];
-        }
-
-        // Then to HSL
-        r /= 255;
-        g /= 255;
-        b /= 255;
-        let cmin = Math.min(r, g, b),
-          cmax = Math.max(r, g, b),
-          delta = cmax - cmin,
-          h = 0,
-          s = 0,
-          l = 0;
-
-        if (delta == 0) {
-          h = 0;
-        } else if (cmax == r) {
-          h = ((g - b) / delta) % 6;
-        } else if (cmax == g) {
-          h = (b - r) / delta + 2;
-        } else {
-          h = (r - g) / delta + 4;
-        }
-
-        h = Math.round(h * 60);
-
-        if (h < 0) {
-          h += 360;
-        }
-
-        l = (cmax + cmin) / 2;
-        s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-        s = +(s * 100).toFixed(1);
-        l = +(l * 100).toFixed(1);
-
-        return "hsl(" + h + "," + s + "%," + l + "%)";
-      }
-
-      //calculateColors (base)
-
-      // let chosenHarmony = event.target.value;
-      // console.log(chosenHarmony);
-
-      //Analogues OR monochromatic OR triad ...
-
-      //setColor(id, color) kaldes 5 gange - 1 gang for hver farve
-
-      //convertRGBstringToRGB
-
-      //convertRGBtoHEX
     </script>
   </body>
 </html>
